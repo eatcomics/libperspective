@@ -3,8 +3,8 @@ LibPerspective is a utility library for writing software on Sega Dreamcast VMU -
 
 I've made some changes because there were some bugs. That said, I haven't fully tested everything yet, so I can't promise my changes don't break anything.
 
+Copyright (c) 2018 Kresna Susila https://slum.online/dreamcast/
 
-Copyright (c) 2018 Kresna Susila
 Contributions by Eatcomics
  
 This software is provided 'as-is', without any express or implied warranty.
