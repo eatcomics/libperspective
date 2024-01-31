@@ -435,7 +435,7 @@ P_BLACK                 EQU     $FF
         ; Set one pixel to black
         ;----------------------------------------------------------------------
         ; Accepts: X and Y coords
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Sets the pixel at X and Y to black in the in the frame buffer
         ;----------------------------------------------------------------------
@@ -451,7 +451,7 @@ P_BLACK                 EQU     $FF
         ; Set one pixel to white
         ;----------------------------------------------------------------------
         ; Accepts: X and Y coords
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Sets the pixel at X and Y to white in the in the frame buffer
         ;----------------------------------------------------------------------
@@ -466,7 +466,7 @@ P_BLACK                 EQU     $FF
         ; Flip the state of one pixel
         ;----------------------------------------------------------------------
         ; Accepts: X and Y coords
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Flips the pixel at X and Y in the frame buffer
         ;----------------------------------------------------------------------
@@ -481,7 +481,7 @@ P_BLACK                 EQU     $FF
         ; Get the state of one pixel
         ;----------------------------------------------------------------------
         ; Accepts: X and Y coords
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Reads the pixel at X and Y in the frame buffer and places it on ACC
         ;----------------------------------------------------------------------
@@ -493,10 +493,10 @@ P_BLACK                 EQU     $FF
 
 %macro P_Write_Pixel %pixel_x, %pixel_y
         ;----------------------------------------------------------------------
-        ; Get the state of one pixel without setting X and Y coords
+        ; Set one pixel to the contents of the ACC register's bit 0
         ;----------------------------------------------------------------------
         ; Accepts: ACC bit 0, X and Y coords
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Copies ACC's bit 0 into the pixel pointed by X and Y position vars
         ; Alias to call the bit write function
@@ -511,7 +511,7 @@ P_BLACK                 EQU     $FF
         ; Set one pixel to black without setting X and Y coords
         ;----------------------------------------------------------------------
         ; Accepts: None
-        ; Destroys: ACC, B, C, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, C, VRMAD1, VRMAD2, VSEL
         ;
         ; Reads the pixel at X and Y in the frame buffer and places it on ACC
         ;----------------------------------------------------------------------
@@ -524,7 +524,7 @@ P_BLACK                 EQU     $FF
         ; Set one pixel to white without setting X and Y coords
         ;----------------------------------------------------------------------
         ; Accepts: None
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Sets the pixel at X and Y to white in the in the frame buffer
         ;----------------------------------------------------------------------
@@ -537,7 +537,7 @@ P_BLACK                 EQU     $FF
         ; Flip the state of one pixel without setting X and Y coords
         ;----------------------------------------------------------------------
         ; Accepts: None
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Flips the pixel at X and Y in the frame buffer
         ;----------------------------------------------------------------------
@@ -550,7 +550,7 @@ P_BLACK                 EQU     $FF
         ; Get the state of one pixel without setting X and Y coords
         ;----------------------------------------------------------------------
         ; Accepts: None
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Reads the pixel at X and Y in the frame buffer and places it on ACC
         ;----------------------------------------------------------------------
@@ -560,10 +560,11 @@ P_BLACK                 EQU     $FF
 
 %macro P_Plot_Write_Pixel
         ;----------------------------------------------------------------------
-        ; Get the state of one pixel without setting X and Y coords
+        ; Set one pixel to the contents of the ACC register's bit 0
+        ; without setting X and Y coords
         ;----------------------------------------------------------------------
         ; Accepts: ACC bit 0
-        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
         ;
         ; Alias to call the bit write function
         ;----------------------------------------------------------------------
