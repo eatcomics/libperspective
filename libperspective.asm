@@ -491,7 +491,7 @@ P_BLACK                 EQU     $FF
         call P_Read_Bit_Framebuffer
 %end
 
-%macro P_Plot_Write_Pixel %pixel_x, %pixel_y
+%macro P_Write_Pixel %pixel_x, %pixel_y
         ;----------------------------------------------------------------------
         ; Get the state of one pixel without setting X and Y coords
         ;----------------------------------------------------------------------
