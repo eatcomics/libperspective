@@ -430,6 +430,383 @@ P_BLACK                 EQU     $FF
         call    P_Invert_Screen
 %end
 
+%macro P_Set_Pixel_Black %pixel_x, %pixel_y
+        ;----------------------------------------------------------------------
+        ; Set one pixel to black
+        ;----------------------------------------------------------------------
+        ; Accepts: X and Y coords
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Sets the pixel at X and Y to black in the in the frame buffer
+        ;----------------------------------------------------------------------
+
+        mov #%pixel_x, p_spr_x
+        mov #%pixel_y, p_spr_y
+        call P_Get_Px_Coord
+        call P_Set_Bit_Framebuffer
+%end
+
+%macro P_Set_Pixel_White %pixel_x, %pixel_y
+        ;----------------------------------------------------------------------
+        ; Set one pixel to white
+        ;----------------------------------------------------------------------
+        ; Accepts: X and Y coords
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Sets the pixel at X and Y to white in the in the frame buffer
+        ;----------------------------------------------------------------------
+        mov #%pixel_x, p_spr_x
+        mov #%pixel_y, p_spr_y
+        call P_Get_Px_Coord
+        call P_Clear_Bit_Framebuffer
+%end
+
+%macro P_Flip_Pixel %pixel_x, %pixel_y
+        ;----------------------------------------------------------------------
+        ; Flip the state of one pixel
+        ;----------------------------------------------------------------------
+        ; Accepts: X and Y coords
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Flips the pixel at X and Y in the frame buffer
+        ;----------------------------------------------------------------------
+        mov #%pixel_x, p_spr_x
+        mov #%pixel_y, p_spr_y
+        call P_Get_Px_Coord
+        call P_Flip_Bit_Framebuffer
+%end
+
+%macro P_Get_Pixel %pixel_x, %pixel_y
+        ;----------------------------------------------------------------------
+        ; Get the state of one pixel
+        ;----------------------------------------------------------------------
+        ; Accepts: X and Y coords
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Reads the pixel at X and Y in the frame buffer and places it on ACC
+        ;----------------------------------------------------------------------
+        mov #%pixel_x, p_spr_x
+        mov #%pixel_y, p_spr_y
+        call P_Get_Px_Coord
+        call P_Read_Bit_Framebuffer
+%end
+
+%macro P_Write_Pixel %pixel_x, %pixel_y
+        ;----------------------------------------------------------------------
+        ; Set one pixel to the contents of the ACC register's bit 0
+        ;----------------------------------------------------------------------
+        ; Accepts: ACC bit 0, X and Y coords
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Copies ACC's bit 0 into the pixel pointed by X and Y position vars
+        ; Alias to call the bit write function
+        ;----------------------------------------------------------------------
+        mov #%pixel_x, p_spr_x
+        mov #%pixel_y, p_spr_y
+        call P_Write_Pixel_Fn
+%end
+
+%macro P_Plot_Pixel_Black
+        ;----------------------------------------------------------------------
+        ; Set one pixel to black without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: None
+        ; Destroys: ACC, B, C, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Reads the pixel at X and Y in the frame buffer and places it on ACC
+        ;----------------------------------------------------------------------
+        call P_Get_Px_Coord
+        call P_Read_Bit_Framebuffer
+%end
+
+%macro P_Plot_Pixel_White
+        ;----------------------------------------------------------------------
+        ; Set one pixel to white without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: None
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Sets the pixel at X and Y to white in the in the frame buffer
+        ;----------------------------------------------------------------------
+        call P_Get_Px_Coord
+        call P_Clear_Bit_Framebuffer
+%end
+
+%macro P_Plot_Flip_Pixel
+        ;----------------------------------------------------------------------
+        ; Flip the state of one pixel without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: None
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Flips the pixel at X and Y in the frame buffer
+        ;----------------------------------------------------------------------
+        call P_Get_Px_Coord
+        call P_Flip_Bit_Framebuffer
+%end
+
+%macro P_Plot_Get_Pixel
+        ;----------------------------------------------------------------------
+        ; Get the state of one pixel without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: None
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Reads the pixel at X and Y in the frame buffer and places it on ACC
+        ;----------------------------------------------------------------------
+        call P_Get_Px_Coord
+        call P_Read_Bit_Framebuffer
+%end
+
+%macro P_Plot_Write_Pixel
+        ;----------------------------------------------------------------------
+        ; Set one pixel to the contents of the ACC register's bit 0
+        ; without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: ACC bit 0
+        ; Destroys: ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Alias to call the bit write function
+        ;----------------------------------------------------------------------
+        call P_Write_Pixel_Fn
+%end
+
+P_Write_Pixel_Fn:
+        ;----------------------------------------------------------------------
+        ; Get the state of one pixel without setting X and Y coords
+        ;----------------------------------------------------------------------
+        ; Accepts: ACC bit 0
+        ; Destroys: ACC, B, VRMAD1, VRMAD2
+        ;
+        ; Copies ACC's bit 0 into the pixel pointed by X and Y position vars
+        ;----------------------------------------------------------------------
+        bn ACC, 0, .white_px
+        call P_Get_Px_Coord
+        call P_Set_Bit_Framebuffer
+        ret
+
+.white_px:
+        call P_Get_Px_Coord
+        call P_Clear_Bit_Framebuffer
+        ret
+
+P_Get_Px_Coord:
+        ;----------------------------------------------------------------------
+        ; Get the byte position inside the WRAM frame buffer
+        ;----------------------------------------------------------------------
+        ; Accepts:      X and Y position
+        ; Destroys:     ACC, B
+        ;
+        ; Converts X and Y vars into a WRAM index
+        ;----------------------------------------------------------------------
+        ld p_spr_y        ; get Y offset
+        rol ; *2
+        st B
+        rol ; *4
+        add B   ; *4 + *2
+        st B
+	
+        ld p_spr_x        ; get X offset
+        ror
+        ror
+        ror
+        and #%00011111
+        add B
+        ret
+
+P_Set_Bit_Framebuffer:
+        ;----------------------------------------------------------------------
+        ; Set one pixel to black in WRAM
+        ;----------------------------------------------------------------------
+        ; Accepts:      X and Y position
+        ; Destroys:     ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Used in a macro function
+        ;----------------------------------------------------------------------
+        mov #P_WRAM_BANK, VRMAD2
+        st VRMAD1
+        mov #0, VSEL
+
+        bn p_spr_x, 2, .4topbits
+        bn p_spr_x, 1, .2top_lownib_bits
+        bn p_spr_x, 0, .bit1
+        set1 VTRBF, 0
+        ret
+.bit1:
+        set1 VTRBF, 1
+        ret
+
+.2top_lownib_bits:
+        bn p_spr_x, 0, .bit3
+        set1 VTRBF, 2
+        ret
+.bit3:
+        set1 VTRBF, 3
+        ret
+
+.4topbits:
+        bn p_spr_x, 1, .2top_hinib_bits
+        bn p_spr_x, 0, .bit5
+        set1 VTRBF, 4
+        ret
+.bit5:
+        set1 VTRBF, 5
+        ret
+
+.2top_hinib_bits:
+        bn p_spr_x, 0, .bit7
+        set1 VTRBF, 6
+        ret
+.bit7:
+        set1 VTRBF, 7
+        ret
+
+P_Clear_Bit_Framebuffer:
+        ;----------------------------------------------------------------------
+        ; Set one pixel to white in WRAM
+        ;----------------------------------------------------------------------
+        ; Accepts:      X and Y position
+        ; Destroys:     ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Used in a macro function
+        ;----------------------------------------------------------------------
+        mov #0, VSEL
+        mov #P_WRAM_BANK, VRMAD2
+        st VRMAD1
+        bn p_spr_x, 2, .4topbits
+        bn p_spr_x, 1, .2top_lownib_bits
+        bn p_spr_x, 0, .bit1
+        clr1 VTRBF, 0
+        ret
+.bit1:
+        clr1 VTRBF, 1
+        ret
+	
+.2top_lownib_bits:
+        bn p_spr_x, 0, .bit3
+        clr1 VTRBF, 2
+        ret
+.bit3:
+        clr1 VTRBF, 3
+        ret
+
+.4topbits:
+        bn p_spr_x, 1, .2top_hinib_bits
+        bn p_spr_x, 0, .bit5
+        clr1 VTRBF, 4
+        ret
+.bit5:
+        clr1 VTRBF, 5
+        ret
+
+.2top_hinib_bits:
+        bn p_spr_x, 0, .bit7
+        clr1 VTRBF, 6
+        ret
+.bit7:
+        clr1 VTRBF, 7
+        ret
+
+P_Flip_Bit_Framebuffer:
+        ;----------------------------------------------------------------------
+        ; Flips the state of one pixel inside WRAM
+        ;----------------------------------------------------------------------
+        ; Accepts:      X and Y position
+        ; Destroys:     ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Used in a macro function
+        ;----------------------------------------------------------------------
+        mov #P_WRAM_BANK, VRMAD2
+        st VRMAD1
+        mov #0, VSEL
+        bn p_spr_x, 2, .4topbits
+        bn p_spr_x, 1, .2top_lownib_bits
+        bn p_spr_x, 0, .bit1
+        not1 VTRBF, 0
+        ret
+.bit1:
+        not1 VTRBF, 1
+        ret
+	
+.2top_lownib_bits:
+        bn p_spr_x, 0, .bit3
+        not1 VTRBF, 2
+        ret
+.bit3:
+        not1 VTRBF, 3
+        ret
+	
+.4topbits:
+        bn p_spr_x, 1, .2top_hinib_bits
+        bn p_spr_x, 0, .bit5
+        not1 VTRBF, 4
+        ret
+.bit5:
+        not1 VTRBF, 5
+        ret
+	
+.2top_hinib_bits:
+        bn p_spr_x, 0, .bit7
+        not1 VTRBF, 6
+        ret
+.bit7:
+        not1 VTRBF, 7
+        ret
+
+P_Read_Bit_Framebuffer:
+        ;----------------------------------------------------------------------
+        ; Get one pixel from WRAM into ACC bit 0
+        ;----------------------------------------------------------------------
+        ; Accepts:      X and Y position
+        ; Destroys:     ACC, B, VRMAD1, VRMAD2, VSEL
+        ;
+        ; Used in a macro function
+        ;----------------------------------------------------------------------
+        mov #P_WRAM_BANK, VRMAD2
+        st VRMAD1
+        mov #0, VSEL
+        ld VTRBF
+        bn p_spr_x, 2, .4topbits
+        bn p_spr_x, 1, .2top_lownib_bits
+        bn p_spr_x, 0, .bit1
+        and #%00000001
+        br .bitdone
+.bit1:
+        and #%00000010
+        br .bitdone
+	
+.2top_lownib_bits:
+        bn p_spr_x, 0, .bit3
+        and #%00000100
+        br .bitdone
+.bit3:
+        and #%00001000
+        br .bitdone
+	
+.4topbits:
+        bn p_spr_x, 1, .2top_hinib_bits
+        bn p_spr_x, 0, .bit5
+        and #%00010000
+        br .bitdone
+.bit5:
+        and #%00100000
+        br .bitdone
+	
+.2top_hinib_bits:
+        bn p_spr_x, 0, .bit7
+        and #%01000000
+        br .bitdone
+.bit7:
+        and #%10000000
+        br .bitdone
+  
+  
+.bitdone:
+        bz .exit
+        mov #1, ACC
+.exit:
+        ret
+
 P_Invert_Screen:
         ;----------------------------------------------------------------------
         ; Invert the screen colours
