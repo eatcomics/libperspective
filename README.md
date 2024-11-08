@@ -7,7 +7,7 @@ I've made some changes because there were some bugs. That said, I haven't fully 
 
 Copyright (c) 2018 Kresna Susila https://slum.online/dreamcast/
 
-Contributions by Eatcomics
+Contributions by jvsTSX, Falco Girgis, and Eatcomics
  
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from
